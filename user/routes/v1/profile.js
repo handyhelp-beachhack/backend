@@ -11,7 +11,7 @@ const { idValidator, validateProfileUpdate, validateGuardianProfileUpdate } = re
 const { mongoDBping } = require("./middlewares/mongodb");
 
 // User middleware
-const { validateUserByID, validateOtherUserByID, formatUserViewData, formatSameUserViewData, formatSameUserViewDataFunc, processUpdateData, sendGuardianConnectRequest, validateNormalUser, guardianConnect, validateGuardianUser, validateOtherNormalUser } = require("./middlewares/user");
+const { validateUserByID, validateOtherUserByID, formatUserViewData, formatSameUserViewData, formatSameUserViewDataFunc, processUpdateData, sendGuardianConnectRequest, validateNormalUser, guardianConnect, validateGuardianUser, validateOtherNormalUser, guardianPermissionChecker } = require("./middlewares/user");
 
 // Token middleware
 const { verifyAccessToken } = require("./middlewares/token");
@@ -55,6 +55,10 @@ router.post('/update', verifyAccessToken, mongoDBping, validateUserByID, validat
 
 router.post('/update/guardian', verifyAccessToken, mongoDBping, validateUserByID, validateGuardianUser, validateGuardianProfileUpdate, async (req, res) => {
 
+  req.old_profile_completion = req.temp_user.profile_completion
+  req.temp_user.profile_completion = 1
+  req.temp_user.name = req.body.name
+  req.temp_user.location.coordinates = [req.body.lon, req.body.lat]
   req.temp_user.save()
     .then(data => {
       if (req.old_profile_completion == 0) {
@@ -107,6 +111,11 @@ router.get('/get/nearby-users/:id', verifyAccessToken, mongoDBping, validateUser
     })
 });
 
+router.post('/get/user/location', verifyAccessToken, idValidator, mongoDBping, validateUserByID, validateUserByID, validateGuardianUser, validateOtherUserByID, validateOtherNormalUser, guardianPermissionChecker, async (req, res) => {
+
+  return res.status(200).json({ "response_code": 200, "message": resp["prof-fetched"], "response": { "location": req.other_user.location.coordinates } });
+});
+
 router.get('/get', verifyAccessToken, mongoDBping, validateUserByID, formatSameUserViewData, async (req, res) => {
 
   return res.status(200).json({ "response_code": 200, "message": resp["prof-fetched"], "response": { "user": req.temp_user } });
@@ -148,9 +157,9 @@ router.post('/guardian/connect', verifyAccessToken, idValidator, mongoDBping, va
         console.log(error)
         return res.status(200).json({ "response_code": 200, "message": 'Connected successfully.', "response": null });
       })
+  }else{
+    return res.status(200).json({ "response_code": 500, "message": resp[500], "response": null })
   }
-
-  return res.status(200).json({ "response_code": 500, "message": resp[500], "response": null });
 });
 
 router.post('/view/user', idValidator, verifyAccessToken, mongoDBping, validateUserByID, validateOtherUserByID, formatUserViewData, async (req, res) => {

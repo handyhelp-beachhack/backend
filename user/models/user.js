@@ -20,6 +20,9 @@ const userSchema = new mongoose.Schema({
     },
     status: {
       type: String
+    },
+    id: {
+      type: ObjectId
     }
   },
   name: {

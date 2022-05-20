@@ -44,7 +44,7 @@ function validateNormalUser(req, res, next) {
   if (req.temp_user.account_type == 'user') {
     next()
   } else {
-    return res.status(200).json({ "response_code": 400, "message": 'The you are not a normal user.', "response": null });
+    return res.status(200).json({ "response_code": 400, "message": 'You are not a normal user.', "response": null });
   }
 
 }
@@ -54,7 +54,17 @@ function validateGuardianUser(req, res, next) {
   if (req.temp_user.account_type == 'guardian') {
     next()
   } else {
-    return res.status(200).json({ "response_code": 400, "message": 'The you are not a guardian user.', "response": null });
+    return res.status(200).json({ "response_code": 400, "message": 'You are not a guardian user.', "response": null });
+  }
+
+}
+
+function validateCompanyUser(req, res, next) {
+
+  if (req.temp_user.account_type == 'company') {
+    next()
+  } else {
+    return res.status(200).json({ "response_code": 400, "message": 'You are not a company user.', "response": null });
   }
 
 }
@@ -136,7 +146,7 @@ async function processUpdateData(req, res, next) {
   for (let [key, value] of Object.entries(req.body)) {
     if (key == 'lat' || key == 'lon') {
       req.temp_user.location.coordinates = [req.body.lon, req.body.lat]
-    } else if (key == 'guardian_phone') {
+    } else if (key == 'guardian_phone' && !req.temp_user.guardian.status) {
       req.temp_user.guardian.phone = value
       req.temp_user.guardian.status = "pending"
     } else {
@@ -215,11 +225,21 @@ function guardianConnect(req, res, next){
 
   if(req.temp_user.pending_guradian_connection.some(person => person.id.toString() === req.other_user._id.toString())){
     req.other_user.guardian.status = 'connected'
+    req.other_user.guardian.id = req.temp_user._id
     req.temp_user.connected_users.push(req.other_user._id)
     req.temp_user.pending_guradian_connection = req.temp_user.pending_guradian_connection.filter((item) => item.phone !== req.other_user.phone)
     next()
   }else{
     return res.status(200).json({ "response_code": 400, "message": 'Connect req not found.', "response": null });
+  }
+}
+
+function guardianPermissionChecker(req, res, next){
+
+  if(req.temp_user.connected_users.includes(req.other_user._id)){
+    next()
+  }else{
+    return res.status(200).json({ "response_code": 400, "message": 'Unauthorized access, you are not connected with the user.', "response": null });
   }
 }
 
@@ -235,6 +255,8 @@ module.exports = {
   validateGuardianUser,
   validateOtherNormalUser,
   validateOtherGuardianUser,
-  guardianConnect
+  guardianConnect,
+  guardianPermissionChecker,
+  validateCompanyUser
 
 };

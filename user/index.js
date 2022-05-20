@@ -16,6 +16,12 @@ app.use('/v1/request', requestRoute);
 const healthRoute = require('./routes/v1/health');
 app.use('/v1/healthcheck', healthRoute);
 
+const jobRoute = require('./routes/v1/job');
+app.use('/v1/job', jobRoute);
+
+const eventRoute = require('./routes/v1/event');
+app.use('/v1/event', eventRoute);
+
 const server = app.listen(
   PORT,
   () => console.log(`User service is running on port : ${PORT}`)
