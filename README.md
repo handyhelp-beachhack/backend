@@ -1,2 +1,2 @@
-# backend
-Backend Services of Handy App.
+# Handy (BeachHack) Backend API 🎉
+Backend Services is implemented as Microservices, so each service can run independently.
