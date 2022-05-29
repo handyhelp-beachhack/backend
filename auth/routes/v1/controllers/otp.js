@@ -6,7 +6,7 @@ const { resp } = require("../data/response");
 
 function sendOTP(name, phone, otp) {
   return new Promise((resolve, reject) => {
-  https.get('https://www.fast2sms.com/dev/bulkV2?authorization=sBuCdzQk5HDoWFYjAMnp1ihx4JlPqUIyevwKb823Tfc06t9OXrabYpqC8ZuJ439KhXvf5WcFN7AtVGdB&route=dlt&sender_id=GEEKST&message=140190&variables_values=' + name + '%7C' + otp + '%7C&flash=0&numbers=' + phone, (resp) => {
+  https.get('', (resp) => {
     let data = '';
 
     // A chunk of data has been received.
